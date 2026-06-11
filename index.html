@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPRGR RACEGAME - Proto</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container"></div>
+    
+    <div id="hud">
+        <div id="takedown-container">
+            <div id="rival-info">
+                <span class="label">RIVAL:</span>
+                <span class="value">OPEL CORSA B TUNING</span>
+                <div class="health-bar"><div id="rival-health" style="width: 100%;"></div></div>
+            </div>
+            <div id="boost-bar-container">
+                <div class="label">TAKEDOWN BOOST</div>
+                <div class="bar-bg"><div id="boost-bar" style="width: 0%;"></div></div>
+            </div>
+        </div>
+
+        <div id="speedometer">
+            <div class="speed">0</div>
+            <div class="unit">KM/H</div>
+            <div class="gear">D</div>
+        </div>
+
+        <div id="warning-overlay" class="hidden">
+            <div class="warning-text">TAKEDOWN WARNING!</div>
+            <div class="sub-text">PRESS [SPACE] TO DODGE</div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
