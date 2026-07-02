@@ -1,6 +1,24 @@
 # Contexto do Projeto: NPRGR RACEGAME
 
-## Resumo da Sessão (11/06/2026)
+## Resumo da Sessão (02/07/2026)
+
+O protótipo foi **totalmente reconstruído** ao estilo do
+[racing-game-cljs](https://ertugrulcetin.github.io/racing-game-cljs):
+
+- Física real de veículo com **cannon-es RaycastVehicle** (suspensão, drift, travão de mão).
+- Carro do **pmndrs/racing-game** (`chassis-draco.glb` + `wheel-draco.glb`, MIT) — o mesmo do jogo de referência.
+- Mapa 3D low-poly construído de raiz: **Circunvalação com 2 faixas por sentido e separador central**,
+  **Rotunda da AEP** (com monumento), **cruzamento do Amial** (com semáforos),
+  **fábrica Monteiro Ribas** com parque de estacionamento (partida/meta), parque com árvores e cidade em fundo.
+- Modo contrarrelógio com 9 checkpoints a seguir o percurso real, cronómetro, recorde em `localStorage`,
+  minimapa, velocímetro e controlos táteis.
+- Dependências (three.js r160, cannon-es, draco) incluídas em `assets/vendor/` — funciona offline e no GitHub Pages.
+
+O modo Burnout (rival, takedowns) foi retirado nesta reconstrução; pode voltar por cima desta base.
+
+---
+
+## Resumo da Sessão anterior (11/06/2026)
 
 Este documento serve para dar continuidade ao desenvolvimento do minijogo de corrida estilo *Burnout Takedown* integrado num RPG.
 

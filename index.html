@@ -2,43 +2,76 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NPRGR RACEGAME - Proto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NPRGR · Circunvalação</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container"></div>
-    
+
     <div id="hud">
-        <div id="takedown-container">
-            <div id="rival-info">
-                <span class="label">RIVAL:</span>
-                <span class="value">OPEL CORSA B TUNING</span>
-                <div class="health-bar"><div id="rival-health" style="width: 100%;"></div></div>
-            </div>
-            <div id="boost-bar-container">
-                <div class="label">TAKEDOWN BOOST</div>
-                <div class="bar-bg"><div id="boost-bar" style="width: 0%;"></div></div>
-            </div>
+        <div id="timer">00:00.000</div>
+
+        <div id="cp-box">
+            <div id="cp-count">1/9</div>
+            <div id="cp-label"></div>
         </div>
 
         <div id="speedometer">
-            <div class="speed">0</div>
-            <div class="unit">KM/H</div>
-            <div class="gear">D</div>
+            <span id="speed">0</span>
+            <span class="unit">km/h</span>
         </div>
 
-        <div id="warning-overlay" class="hidden">
-            <div class="warning-text">TAKEDOWN WARNING!</div>
-            <div class="sub-text">PRESS [SPACE] TO DODGE</div>
+        <canvas id="minimap" width="230" height="74"></canvas>
+
+        <div id="countdown" class="hidden">3</div>
+    </div>
+
+    <div id="start-screen">
+        <div class="panel">
+            <div class="kicker">PORTO · ESTRADA DA CIRCUNVALAÇÃO</div>
+            <h1>NPRGR <span>RACEGAME</span></h1>
+            <p class="route">
+                Parque Monteiro Ribas → Rotunda da AEP → Fábrica →
+                Cruzamento do Amial → Meta no parque
+            </p>
+            <div class="keys">
+                <div><b>↑ / W</b> acelerar</div>
+                <div><b>↓ / S</b> travar · marcha-atrás</div>
+                <div><b>← → / A D</b> direção</div>
+                <div><b>ESPAÇO</b> travão de mão</div>
+                <div><b>R</b> repor no último checkpoint</div>
+            </div>
+            <button id="start-btn">COMEÇAR &nbsp;⏎</button>
+        </div>
+    </div>
+
+    <div id="finish-screen" class="hidden">
+        <div class="panel">
+            <div class="kicker">VOLTA COMPLETA</div>
+            <h1 id="final-time">00:00.000</h1>
+            <p id="best-note"></p>
+            <button onclick="window.__game.startRace()">CORRER OUTRA VEZ &nbsp;⏎</button>
+        </div>
+    </div>
+
+    <div id="touch-controls" class="hidden">
+        <div class="t-group">
+            <button id="t-left">◀</button>
+            <button id="t-right">▶</button>
+        </div>
+        <div class="t-group">
+            <button id="t-brake">▼</button>
+            <button id="t-gas">▲</button>
         </div>
     </div>
 
     <script type="importmap">
         {
             "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+                "three": "./assets/vendor/three.module.js",
+                "three/addons/": "./assets/vendor/addons/",
+                "cannon-es": "./assets/vendor/cannon-es.js"
             }
         }
     </script>

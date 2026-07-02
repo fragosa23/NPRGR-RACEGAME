@@ -1,143 +1,114 @@
-body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+    width: 100%; height: 100%;
     overflow: hidden;
-    background-color: #000;
-    font-family: 'Arial Black', sans-serif;
-}
-
-#game-container {
-    width: 100%;
-    height: 100%;
-}
-
-#hud {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+    background: #0b1218;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     color: #fff;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
 }
 
-/* Rival Info Top Left */
-#takedown-container {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 300px;
+#game-container, #game-container canvas { position: absolute; inset: 0; }
+
+.hidden { display: none !important; }
+
+/* ── HUD ─────────────────────────────────────────────────────────────────── */
+#hud { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+
+#timer {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    font-family: 'Consolas', 'Menlo', monospace;
+    font-size: 30px; font-weight: 700; letter-spacing: 2px;
+    color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.55);
+    background: rgba(8,14,20,.55);
+    padding: 6px 22px; border-radius: 12px;
 }
 
-.label {
-    font-size: 12px;
-    color: #aaa;
+#cp-box {
+    position: absolute; top: 16px; right: 18px; text-align: right;
+    background: rgba(8,14,20,.55); padding: 8px 16px; border-radius: 12px;
 }
+#cp-count { font-size: 24px; font-weight: 800; color: #00d2ff; }
+#cp-label { font-size: 12px; color: #cfe3ee; max-width: 220px; }
 
-.value {
-    font-size: 18px;
-    display: block;
-    margin-bottom: 5px;
-}
-
-.health-bar {
-    width: 100%;
-    height: 10px;
-    background: rgba(255,255,255,0.2);
-    border: 1px solid #fff;
-}
-
-#rival-health {
-    height: 100%;
-    background: #ff0000;
-    transition: width 0.3s ease;
-}
-
-/* Boost Bar Bottom Left */
-#boost-bar-container {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    width: 350px;
-}
-
-.bar-bg {
-    width: 100%;
-    height: 20px;
-    background: rgba(0,0,0,0.5);
-    border: 2px solid #fff;
-    transform: skew(-15deg);
-    overflow: hidden;
-}
-
-#boost-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
-    width: 0%;
-    box-shadow: 0 0 15px #00d2ff;
-}
-
-/* Speedometer Bottom Right */
 #speedometer {
-    position: absolute;
-    bottom: 20px;
-    right: 40px;
-    text-align: right;
-    transform: skew(-10deg);
+    position: absolute; bottom: 22px; right: 24px;
+    background: rgba(8,14,20,.55); padding: 10px 20px; border-radius: 14px;
+    display: flex; align-items: baseline; gap: 8px;
 }
-
-.speed {
-    font-size: 80px;
-    line-height: 0.8;
-    font-style: italic;
+#speed {
+    font-size: 52px; font-weight: 900; font-style: italic;
+    font-family: 'Consolas', 'Menlo', monospace;
+    text-shadow: 0 2px 10px rgba(0,0,0,.5);
+    min-width: 100px; text-align: right;
 }
+#speedometer .unit { font-size: 15px; color: #9fb4c0; font-weight: 700; }
 
-.unit {
-    font-size: 20px;
-    color: #ff9900;
+#minimap { position: absolute; bottom: 22px; left: 24px; }
+
+#countdown {
+    position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 110px; font-weight: 900; font-style: italic;
+    color: #ffcc00; text-shadow: 0 6px 30px rgba(0,0,0,.6);
+    animation: pop .8s ease infinite;
 }
+@keyframes pop { 0% { transform: translate(-50%,-50%) scale(.7); opacity: .4; }
+                 30% { transform: translate(-50%,-50%) scale(1.1); opacity: 1; }
+                 100% { transform: translate(-50%,-50%) scale(1); opacity: .9; } }
 
-.gear {
-    font-size: 40px;
-    color: #fff;
-    background: rgba(255,255,255,0.2);
-    padding: 0 10px;
-    margin-top: 5px;
+/* ── Ecrãs ───────────────────────────────────────────────────────────────── */
+#start-screen, #finish-screen {
+    position: absolute; inset: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(6, 12, 18, .62);
+    backdrop-filter: blur(5px);
 }
-
-/* Warning Overlay Center */
-#warning-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.panel {
+    background: rgba(10, 18, 26, .92);
+    border: 1px solid rgba(0, 210, 255, .25);
+    border-radius: 18px;
+    padding: 38px 46px;
+    max-width: 480px; width: 92%;
     text-align: center;
-    background: rgba(255, 0, 0, 0.3);
-    padding: 40px;
-    border: 4px solid #ff0000;
-    border-radius: 20px;
-    animation: flash 0.5s infinite alternate;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6);
 }
+.kicker { font-size: 11px; letter-spacing: 4px; color: #00d2ff; margin-bottom: 12px; }
+.panel h1 { font-size: 40px; font-weight: 900; font-style: italic; margin-bottom: 14px; }
+.panel h1 span { color: #ffcc00; }
+.route { font-size: 13px; color: #b9cbd6; line-height: 1.6; margin-bottom: 20px; }
+.keys {
+    text-align: left; font-size: 13px; color: #cfe3ee;
+    background: rgba(0,0,0,.35); border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 24px;
+    display: grid; gap: 6px;
+}
+.keys b { color: #00d2ff; display: inline-block; min-width: 96px; }
+.panel button {
+    pointer-events: auto;
+    width: 100%; padding: 14px; border: none; border-radius: 10px;
+    background: linear-gradient(135deg, #00d2ff, #0077aa);
+    color: #04222e; font-size: 15px; font-weight: 800; letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 210, 255, .35);
+}
+.panel button:hover { filter: brightness(1.1); }
+#final-time { font-family: 'Consolas', monospace; color: #ffcc00; }
+#best-note { font-size: 15px; color: #cfe3ee; margin-bottom: 22px; }
 
-.hidden {
-    display: none;
+/* ── Controlo tátil ──────────────────────────────────────────────────────── */
+#touch-controls {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 8;
+    display: flex; justify-content: space-between;
+    padding: 0 18px 110px 18px;
+    pointer-events: none;
 }
-
-.warning-text {
-    font-size: 48px;
-    color: #fff;
-    margin-bottom: 10px;
+.t-group { display: flex; gap: 14px; pointer-events: auto; }
+#touch-controls button {
+    width: 74px; height: 74px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.35);
+    background: rgba(8,14,20,.5); color: #fff; font-size: 26px;
 }
-
-.sub-text {
-    font-size: 24px;
-    color: #ffff00;
-}
-
-@keyframes flash {
-    from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    to { opacity: 0.7; transform: translate(-50%, -50%) scale(1.05); }
-}
+#touch-controls button:active { background: rgba(0,210,255,.45); }
