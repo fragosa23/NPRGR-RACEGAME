@@ -151,9 +151,11 @@ export class Car {
     // direção com redução progressiva a alta velocidade (evita ângulos de deriva
     // grandes, que com o modelo de atrito simplificado do RaycastVehicle travam o carro)
     const steerScale = THREE.MathUtils.clamp(1 / (1 + this.speedKmh / 40), 0.12, 1);
+    // nota: as rodas dirigidas estão no nariz (+z), por isso a mesma volta ao
+    // volante gira o carro no sentido oposto ao que geraria em rodas traseiras
     const targetSteer = locked ? 0
-      : (input.right ? 1 : 0) * CONFIG.maxSteer * steerScale
-      - (input.left ? 1 : 0) * CONFIG.maxSteer * steerScale;
+      : (input.left ? 1 : 0) * CONFIG.maxSteer * steerScale
+      - (input.right ? 1 : 0) * CONFIG.maxSteer * steerScale;
     this._steer = THREE.MathUtils.lerp(this._steer ?? 0, targetSteer, Math.min(1, dt * 12));
     for (const i of CONFIG.frontWheels) vehicle.setSteeringValue(this._steer, i);
 
