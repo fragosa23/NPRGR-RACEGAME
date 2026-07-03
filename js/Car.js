@@ -7,7 +7,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 const CONFIG = {
   mass: 500,
   chassisHalf: new CANNON.Vec3(0.85, 0.42, 2.05),
-  engineForce: 2400,
+  engineForce: 1850,
   reverseForce: 1100,
   brakeForce: 22,
   handbrakeForce: 40,
@@ -16,11 +16,11 @@ const CONFIG = {
     radius: 0.38,
     directionLocal: new CANNON.Vec3(0, -1, 0),
     axleLocal: new CANNON.Vec3(-1, 0, 0),
-    suspensionStiffness: 30,
+    suspensionStiffness: 42,
     suspensionRestLength: 0.35,
-    frictionSlip: 1.6,
-    dampingRelaxation: 2.3,
-    dampingCompression: 4.4,
+    frictionSlip: 2.0,
+    dampingRelaxation: 2.9,
+    dampingCompression: 4.9,
     maxSuspensionForce: 100000,
     rollInfluence: 0.01,
     maxSuspensionTravel: 0.3,
@@ -60,7 +60,7 @@ export class Car {
     // ── Corpo físico ─────────────────────────────────────────────────────────
     this.chassisBody = new CANNON.Body({ mass: CONFIG.mass });
     this.chassisBody.addShape(new CANNON.Box(CONFIG.chassisHalf), new CANNON.Vec3(0, 0.1, 0));
-    this.chassisBody.angularDamping = 0.6;
+    this.chassisBody.angularDamping = 0.85;
     this.chassisBody.position.set(0, 2, 0);
 
     this.vehicle = new CANNON.RaycastVehicle({
@@ -147,8 +147,9 @@ export class Car {
     const forwardSpeed = localVel.z;
     this.speedKmh = Math.abs(chassisBody.velocity.length()) * 3.6;
 
-    // direção com redução a alta velocidade
-    const steerScale = THREE.MathUtils.clamp(1 - this.speedKmh / 260, 0.38, 1);
+    // direção com redução progressiva a alta velocidade (evita ângulos de deriva
+    // grandes, que com o modelo de atrito simplificado do RaycastVehicle travam o carro)
+    const steerScale = THREE.MathUtils.clamp(1 / (1 + this.speedKmh / 40), 0.12, 1);
     const targetSteer = locked ? 0
       : (input.right ? 1 : 0) * CONFIG.maxSteer * steerScale
       - (input.left ? 1 : 0) * CONFIG.maxSteer * steerScale;
@@ -171,6 +172,21 @@ export class Car {
     // o RaycastVehicle do cannon trata -z local como "frente"; o jogo usa +z
     for (const i of CONFIG.rearWheels) vehicle.applyEngineForce(-engine, i);
     for (let i = 0; i < 4; i++) vehicle.setBrake(input.brake && !locked ? (i >= 2 ? brake : 0) : brake, i);
+
+    // assistência de estabilidade: quando se larga o volante, a guinada residual
+    // (o carro continua a rodar por inércia enquanto as rodas voltam ao centro)
+    // é amortecida depressa — sem isto, o desfasamento entre a direção das rodas
+    // e a velocidade real faz o atrito "travar" o carro de repente numa curva
+    const steerIntensity = Math.abs(this._steer) / CONFIG.maxSteer;
+    const yawDampRate = THREE.MathUtils.lerp(7, 0.6, steerIntensity);
+    chassisBody.angularVelocity.y *= Math.max(0, 1 - yawDampRate * dt);
+
+    // rede de segurança: nunca deixa entrar em trompo descontrolado
+    const maxYaw = 1.7;
+    if (Math.abs(chassisBody.angularVelocity.y) > maxYaw) {
+      const excess = Math.abs(chassisBody.angularVelocity.y) - maxYaw;
+      chassisBody.angularVelocity.y -= Math.sign(chassisBody.angularVelocity.y) * excess * Math.min(1, dt * 12);
+    }
 
     // sincronizar visual
     this.mesh.position.copy(chassisBody.position);

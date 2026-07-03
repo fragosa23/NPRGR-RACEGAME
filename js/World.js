@@ -101,6 +101,9 @@ export function buildWorld(scene, physics) {
   addFlat(-433, 0, 50, 12, PALETTE.asphalt, ROAD_Y - 0.004);
 
   // ── Separador central (com aberturas no Amial e junto à rotunda) ──────────
+  // Apenas visual (sem colisão): um lancil baixo (0.26m) travava o carro por
+  // completo ao ser tocado, o que fazia parecer "perda de controlo" sempre que
+  // se desviava ligeiramente do centro da via numa curva a alta velocidade.
   const kerbGeoCache = new Map();
   const addKerb = (x, z, len, alongX = true) => {
     const key = `${len}|${alongX}`;
@@ -112,7 +115,6 @@ export function buildWorld(scene, physics) {
     m.castShadow = true;
     m.receiveShadow = true;
     statics.add(m);
-    addStaticBox(x, 0.13, z, alongX ? len : 2, 0.26, alongX ? 2 : len);
   };
   addKerb(-21, 0, 658);   // x∈[-350, 308]
   addKerb(338, 0, 12);    // retoma depois do cruzamento
