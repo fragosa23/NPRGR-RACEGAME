@@ -9,30 +9,31 @@ const CONFIG = {
   chassisHalf: new CANNON.Vec3(0.85, 0.42, 2.05),
   engineForce: 1850,
   reverseForce: 1100,
-  brakeForce: 22,
-  handbrakeForce: 40,
+  brakeForce: 78,
+  handbrakeForce: 100,
   maxSteer: 0.55,
   wheel: {
     radius: 0.38,
     directionLocal: new CANNON.Vec3(0, -1, 0),
     axleLocal: new CANNON.Vec3(-1, 0, 0),
-    suspensionStiffness: 42,
+    suspensionStiffness: 34,
     suspensionRestLength: 0.35,
-    frictionSlip: 2.0,
-    dampingRelaxation: 2.9,
-    dampingCompression: 4.9,
+    frictionSlip: 3.6,
+    dampingRelaxation: 3.4,
+    dampingCompression: 5.8,
     maxSuspensionForce: 100000,
     rollInfluence: 0.01,
-    maxSuspensionTravel: 0.3,
+    maxSuspensionTravel: 0.14,
     customSlidingRotationalSpeed: -30,
     useCustomSlidingRotationalSpeed: true,
   },
   // ligação das rodas ao chassis (x: eixo, y: altura, z: frente/trás)
+  // o nariz do modelo 3D fica em +z (a câmara persegue o carro a partir de -z)
   connections: [
-    [-0.78, -0.1, -1.35], // frente esquerda
-    [ 0.78, -0.1, -1.35], // frente direita
-    [-0.78, -0.1,  1.3],  // trás esquerda
-    [ 0.78, -0.1,  1.3],  // trás direita
+    [-0.78, -0.1,  1.35], // frente esquerda
+    [ 0.78, -0.1,  1.35], // frente direita
+    [-0.78, -0.1, -1.3],  // trás esquerda
+    [ 0.78, -0.1, -1.3],  // trás direita
   ],
   frontWheels: [0, 1],
   rearWheels: [2, 3],
@@ -186,6 +187,20 @@ export class Car {
     if (Math.abs(chassisBody.angularVelocity.y) > maxYaw) {
       const excess = Math.abs(chassisBody.angularVelocity.y) - maxYaw;
       chassisBody.angularVelocity.y -= Math.sign(chassisBody.angularVelocity.y) * excess * Math.min(1, dt * 12);
+    }
+
+    // rede de segurança: a pista é plana (sem rampas), por isso qualquer
+    // velocidade vertical grande só pode vir de um pico instável da física de
+    // suspensão (ex.: travagem forte a descarregar o eixo traseiro e a
+    // "saltar" quando a roda volta a tocar o chão) — nunca de um salto real
+    const maxVertSpeed = 1.6;
+    if (Math.abs(chassisBody.velocity.y) > maxVertSpeed) {
+      chassisBody.velocity.y = Math.sign(chassisBody.velocity.y) * maxVertSpeed;
+    }
+    // e puxa-o de volta se ainda assim ganhar altura invulgar
+    const restHeight = 0.78;
+    if (chassisBody.position.y > restHeight + 0.35) {
+      chassisBody.velocity.y -= (chassisBody.position.y - (restHeight + 0.35)) * Math.min(1, dt * 15);
     }
 
     // sincronizar visual
