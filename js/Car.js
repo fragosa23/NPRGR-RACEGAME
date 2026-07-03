@@ -159,7 +159,7 @@ export class Car {
     this._steer = THREE.MathUtils.lerp(this._steer ?? 0, targetSteer, Math.min(1, dt * 12));
     for (const i of CONFIG.frontWheels) vehicle.setSteeringValue(this._steer, i);
 
-    // aceleração / travagem / marcha-atrás
+    // aceleração / marcha-atrás
     let engine = 0;
     let brake = 0;
     if (!locked) {
@@ -168,24 +168,41 @@ export class Car {
         if (forwardSpeed > 1) brake = CONFIG.brakeForce;
         else engine = -CONFIG.reverseForce;
       }
-      if (input.brake) brake = Math.max(brake, CONFIG.handbrakeForce);
     } else {
       brake = CONFIG.brakeForce;
     }
     // o RaycastVehicle do cannon trata -z local como "frente"; o jogo usa +z
     for (const i of CONFIG.rearWheels) vehicle.applyEngineForce(-engine, i);
-    for (let i = 0; i < 4; i++) vehicle.setBrake(input.brake && !locked ? (i >= 2 ? brake : 0) : brake, i);
+
+    // travagem com "trail braking" automático: transfere a travagem normal
+    // para o eixo traseiro conforme se vira, à semelhança do que um condutor
+    // real faz ao levantar o pé do travão à entrada de uma curva. As rodas
+    // dianteiras (que esterçam) ficam com o travão quase todo largado quando
+    // o volante está a fundo, e o travão de mão (SPAÇO) trava sempre só as
+    // traseiras, como num carro real.
+    const useHandbrake = input.brake && !locked;
+    const steerIntensity = Math.abs(this._steer) / CONFIG.maxSteer;
+    const frontBrakeBias = THREE.MathUtils.lerp(1, 0.2, steerIntensity);
+    for (const i of CONFIG.frontWheels) vehicle.setBrake(useHandbrake ? 0 : brake * frontBrakeBias, i);
+    for (const i of CONFIG.rearWheels) vehicle.setBrake(useHandbrake ? CONFIG.handbrakeForce : brake, i);
 
     // assistência de estabilidade: quando se larga o volante, a guinada residual
     // (o carro continua a rodar por inércia enquanto as rodas voltam ao centro)
     // é amortecida depressa — sem isto, o desfasamento entre a direção das rodas
-    // e a velocidade real faz o atrito "travar" o carro de repente numa curva
-    const steerIntensity = Math.abs(this._steer) / CONFIG.maxSteer;
-    const yawDampRate = THREE.MathUtils.lerp(7, 0.6, steerIntensity);
+    // e a velocidade real faz o atrito "travar" o carro de repente numa curva.
+    // Travar transfere peso para o eixo dianteiro (que esterça), dando-lhe mais
+    // aderência lateral e por isso mais "vontade" de rodar — medido: só a virar,
+    // a guinada máxima ronda 0.56 rad/s; a travar a fundo e a virar ao mesmo
+    // tempo, dispara para ~1.7 rad/s mesmo com o círculo de atrito por saturar
+    // (skidInfo=1 — não é falta de aderência, é o peso extra à frente). Por
+    // isso reforçamos o amortecimento especificamente quando se trava, para a
+    // curva continuar previsível em vez de rodar demasiado depressa.
+    const isBraking = input.backward || useHandbrake;
+    const yawDampRate = THREE.MathUtils.lerp(7, isBraking ? 3.6 : 0.6, steerIntensity);
     chassisBody.angularVelocity.y *= Math.max(0, 1 - yawDampRate * dt);
 
     // rede de segurança: nunca deixa entrar em trompo descontrolado
-    const maxYaw = 1.7;
+    const maxYaw = isBraking ? 0.85 : 1.7;
     if (Math.abs(chassisBody.angularVelocity.y) > maxYaw) {
       const excess = Math.abs(chassisBody.angularVelocity.y) - maxYaw;
       chassisBody.angularVelocity.y -= Math.sign(chassisBody.angularVelocity.y) * excess * Math.min(1, dt * 12);
