@@ -127,6 +127,7 @@ export class Car {
     this.chassisBody.quaternion.setFromEuler(0, heading, 0);
     this.chassisBody.velocity.setZero();
     this.chassisBody.angularVelocity.setZero();
+    this._steer = 0;
     for (let i = 0; i < 4; i++) {
       this.vehicle.applyEngineForce(0, i);
       this.vehicle.setBrake(0, i);

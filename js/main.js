@@ -83,6 +83,15 @@ class Game {
     window.addEventListener('keyup', (e) => {
       if (keymap[e.key]) this.car.input[keymap[e.key]] = false;
     });
+    // ao mudar de separador/janela o browser nem sempre envia o keyup — sem
+    // isto o carro ficava a acelerar ou a virar sozinho ao voltar ao jogo
+    const releaseAllInputs = () => {
+      for (const k of Object.keys(this.car.input)) this.car.input[k] = false;
+    };
+    window.addEventListener('blur', releaseAllInputs);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) releaseAllInputs();
+    });
     $('start-btn').addEventListener('click', () => this.onEnter());
     window.addEventListener('resize', () => this.onResize());
     this.setupTouch();
@@ -153,6 +162,7 @@ class Game {
   resetCar() {
     if (this.state !== 'race') return;
     this.car.reset(this.respawn.x, this.respawn.z, this.respawn.heading);
+    this.snapCamera();
   }
 
   finishRace() {
@@ -219,6 +229,7 @@ class Game {
     const ctx = this.minimap;
     const W = 230, H = 74;
     const mx = (x) => 18 + ((x + 420) / 790) * (W - 32);
+    const mz = (z) => THREE.MathUtils.clamp(z / 3, -14, 14);
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = 'rgba(8, 14, 20, 0.65)';
     ctx.beginPath(); ctx.roundRect(0, 0, W, H, 10); ctx.fill();
@@ -235,14 +246,14 @@ class Game {
     if (cp && Math.floor(performance.now() / 400) % 2 === 0) {
       ctx.fillStyle = cp.finish ? '#ffcc00' : '#00d2ff';
       ctx.beginPath();
-      ctx.arc(mx(cp.x), H / 2 + (cp.z > 8 || cp.z < -8 ? Math.sign(cp.z) * 8 : cp.z), 4, 0, Math.PI * 2);
+      ctx.arc(mx(cp.x), H / 2 + mz(cp.z), 4, 0, Math.PI * 2);
       ctx.fill();
     }
     // carro
     const p = this.car.chassisBody.position;
     ctx.fillStyle = '#ff3b30';
     ctx.beginPath();
-    ctx.arc(mx(p.x), H / 2 + THREE.MathUtils.clamp(p.z / 3, -14, 14), 4.5, 0, Math.PI * 2);
+    ctx.arc(mx(p.x), H / 2 + mz(p.z), 4.5, 0, Math.PI * 2);
     ctx.fill();
   }
 
